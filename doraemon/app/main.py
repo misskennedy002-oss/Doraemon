@@ -3,6 +3,11 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.routers import chat
+from app.database import engine, Base
+import app.models # Import models so SQLAlchemy knows they exist
+
+# Create database tables
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Doraemon AI Assistant")
 

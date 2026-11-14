@@ -2,8 +2,6 @@ const chatBox = document.getElementById('chat-box');
 const form = document.getElementById('chat-form');
 const input = document.getElementById('user-input');
 
-let sessionId = '';
-
 function appendMessage(text, role) {
     const div = document.createElement('div');
     div.className = `message ${role}`;
@@ -17,6 +15,7 @@ form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const message = input.value.trim();
     if (!message) return;
+    
     input.value = '';
     appendMessage(message, 'user');
     const botDiv = appendMessage('', 'bot');
@@ -26,7 +25,7 @@ form.addEventListener('submit', async (e) => {
         const response = await fetch('/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message, session_id: sessionId })
+            body: JSON.stringify({ message: message }) // Removed session_id here
         });
 
         if (!response.ok) {
