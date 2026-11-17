@@ -291,6 +291,32 @@ def get_messages(
 
     return [dict(row) for row in rows]
 
+@app.delete("/api/conversations/{conversation_id}")
+def delete_conversation(
+    conversation_id: int,
+    user=Depends(get_current_user)
+):
+    with get_connection() as conn:
+
+        conversation = conn.execute(
+            """
+            SELECT id FROM conversations
+            WHERE id = ? AND user_id = ?
+            """,
+            (conversation_id, user["id"])
+        ).fetchone()
+
+        if not conversation:
+            raise HTTPException(404, "Conversation not found")
+
+        conn.execute(
+            "DELETE FROM conversations WHERE id = ? AND user_id = ?",
+            (conversation_id, user["id"])
+        )
+
+    return {"message": "Conversation deleted successfully"}
+
+
 
 # ---------------- AI CHAT ----------------
 

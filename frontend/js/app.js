@@ -283,6 +283,7 @@ function addMessage(text, sender) {
 }
 
 
+
 // LOAD CHAT HISTORY
 async function loadConversations() {
 
@@ -301,15 +302,37 @@ async function loadConversations() {
         conversations.forEach(conversation => {
 
             const item = document.createElement("div");
-
             item.className = "history-item";
-            item.textContent = conversation.title;
 
             if (conversation.id === currentConversationId) {
                 item.classList.add("active");
             }
 
-            item.onclick = () => openConversation(conversation.id);
+            const title = document.createElement("span");
+            title.className = "history-title";
+            title.textContent = conversation.title;
+
+            const deleteButton = document.createElement("button");
+            deleteButton.className = "delete-chat-button";
+            deleteButton.type = "button";
+            deleteButton.textContent = "🗑";
+            deleteButton.title = "Delete conversation";
+            deleteButton.setAttribute(
+                "aria-label",
+                `Delete ${conversation.title}`
+            );
+
+            deleteButton.addEventListener("click", (event) => {
+                event.stopPropagation();
+                deleteConversation(conversation.id);
+            });
+
+            item.appendChild(title);
+            item.appendChild(deleteButton);
+
+            item.addEventListener("click", () => {
+                openConversation(conversation.id);
+            });
 
             historyList.appendChild(item);
 
@@ -321,6 +344,58 @@ async function loadConversations() {
 
     }
 }
+
+
+// DELETE CONVERSATION
+async function deleteConversation(id) {
+
+    if (isSending) {
+        alert("Please wait until the current response finishes.");
+        return;
+    }
+
+    const confirmed = confirm(
+        "Are you sure you want to delete this conversation? This cannot be undone."
+    );
+
+    if (!confirmed) return;
+
+    try {
+
+        const response = await apiRequest(
+            `/api/conversations/${id}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.detail || "Could not delete conversation");
+        }
+
+        if (currentConversationId === id) {
+            currentConversationId = null;
+
+            messages.innerHTML = `
+                <div class="welcome">
+                    <h1>Hey! I'm Doraemon.</h1>
+                    <p>What can I help you with today?</p>
+                </div>
+            `;
+        }
+
+        await loadConversations();
+
+    } catch (error) {
+
+        alert(error.message);
+        console.error(error);
+
+    }
+}
+
 
 
 // OPEN CONVERSATION
