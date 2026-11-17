@@ -1,4 +1,4 @@
-
+from backend.app.services.personality import SYSTEM_PROMPT
 from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -21,6 +21,12 @@ app.add_middleware(
 
 OLLAMA_URL = "http://127.0.0.1:11434/api/chat"
 MODEL_NAME = "gemma3:4b"
+
+
+{
+    "role": "system",
+    "content": SYSTEM_PROMPT
+}
 
 ITERATIONS = 310000
 
@@ -337,12 +343,19 @@ async def chat(
             ).fetchall()
 
         chat_messages = [
-            {
-                "role": row["role"],
-                "content": row["content"]
-            }
-            for row in history
+        {
+        "role": "system",
+        "content": SYSTEM_PROMPT
+        }
         ]
+
+        chat_messages.extend([
+    {
+        "role": row["role"],
+        "content": row["content"]
+    }
+     for row in history
+   ])
 
         chat_messages.append({
             "role": "user",
